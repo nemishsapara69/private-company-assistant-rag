@@ -50,6 +50,7 @@ def chat(
         question=query.question,
         module=query.module,
         role=user.role,
+        db=db,
     )
 
     try:

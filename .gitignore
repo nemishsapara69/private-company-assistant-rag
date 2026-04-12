@@ -10,3 +10,4 @@ assistant.db
 *.db
 *.sqlite3
 *.log
+uploads/

@@ -12,6 +12,9 @@ Phase 1 and Phase 2 foundation are ready:
 - SQLite database persistence (users and audit logs)
 - Startup data seeding for demo users
 - Per-request audit logging for allowed and denied chat calls
+- Admin document upload with TXT, PDF, and DOCX parsing
+- Chunk storage for later vector search
+- Chat retrieval from stored chunks with citations
 
 ## Quick Start
 
@@ -40,11 +43,13 @@ Phase 1 and Phase 2 foundation are ready:
 - POST /api/v1/chat
 - POST /api/v1/documents (admin only)
 - GET /api/v1/documents (role-filtered listing)
+- POST /api/v1/documents/upload (admin only ingestion)
+- GET /api/v1/documents/{document_id}/chunks (admin debug)
 
 ## Local Database
 
 - Default DB file: `assistant.db`
-- Tables created on startup: `users`, `audit_logs`, `documents`
+- Tables created on startup: `users`, `audit_logs`, `documents`, `document_chunks`
 
 ## Quick Document Module Test
 
@@ -52,6 +57,19 @@ Phase 1 and Phase 2 foundation are ready:
 2. Authorize in Swagger.
 3. Call POST `/api/v1/documents` with sample metadata.
 4. Call GET `/api/v1/documents` as admin and as employee to observe role filtering.
+
+## Quick Ingestion Test
+
+1. Login as `super_admin` / `admin123`.
+2. Authorize in Swagger.
+3. Call POST `/api/v1/documents/upload` with a `.txt`, `.pdf`, or `.docx` file.
+4. Confirm the response shows the created document plus `chunk_count` and `extracted_characters`.
+
+## Quick Retrieval Test
+
+1. Login as `hr_admin` / `hr123` and authorize.
+2. Call POST `/api/v1/chat` with module `hr` and a leave-related question.
+3. Confirm response includes citations from uploaded documents.
 
 ## Learning Path
 

@@ -31,11 +31,14 @@ Tasks:
 2. Add SQLAlchemy models and Alembic migrations.
 3. Replace fake users with DB users.
 4. Save each chat request and response to audit log table.
+5. Add admin document upload and text extraction.
+6. Split document text into chunks and store them for retrieval.
 
 Learning focus:
 - API + DB integration
 - auth persistence
 - secure logging
+- ingestion and chunking
 
 ## Phase 3: Document Ingestion Pipeline
 
