@@ -91,6 +91,21 @@ Run:
 
 `python -m pytest tests/test_phase5_security.py -q`
 
+## Workflow Automation (Phase 7)
+
+1. Document approval workflow endpoints:
+   - `POST /api/v1/workflows/document-approvals`
+   - `POST /api/v1/workflows/document-approvals/{approval_id}/decision`
+2. Ticket workflow for unresolved questions:
+   - Auto-created on low-confidence chat fallback
+   - Manual creation: `POST /api/v1/workflows/tickets`
+3. Policy notification workflow:
+   - `POST /api/v1/workflows/policy-notifications`
+
+Phase 7 workflow tests:
+
+`python -m pytest tests/test_phase7_workflows.py -q`
+
 ## Learning Path
 
 Read `docs/STEP_BY_STEP_PLAN.md` and implement phase by phase.

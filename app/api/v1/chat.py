@@ -12,6 +12,7 @@ from app.schemas.auth import UserSession
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.retrieval import retrieve_answer
 from app.services.security_guardrails import is_prompt_injection_attempt
+from app.services.workflow_service import create_support_ticket
 
 router = APIRouter()
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -97,6 +98,15 @@ def chat(
         answer = "I do not know based on the authorized knowledge sources right now."
         citations = []
         auth_result = "fallback_low_conf"
+        create_support_ticket(
+            db=db,
+            username=user.username,
+            role=user.role,
+            module=query.module,
+            question=query.question,
+            reason="low_confidence_unresolved",
+            auto_created=True,
+        )
 
     citation_text = " | ".join([f"{c.document}::{c.section}" for c in citations])
     db.add(
