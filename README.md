@@ -106,6 +106,39 @@ Phase 7 workflow tests:
 
 `python -m pytest tests/test_phase7_workflows.py -q`
 
+## CI Pipeline
+
+GitHub Actions workflow at `.github/workflows/ci.yml` runs:
+
+1. Backend tests (`test_phase5_security` and `test_phase7_workflows`).
+2. Frontend build (`npm ci` and `npm run build` in `frontend/`).
+
+## Docker Deployment
+
+Build and run both services with:
+
+`docker compose up --build`
+
+Services:
+
+1. Backend API: `http://127.0.0.1:8000`
+2. Frontend UI (Nginx): `http://127.0.0.1:5173`
+
+## Database Migrations (Alembic)
+
+Generate a revision:
+
+`python -m alembic revision --autogenerate -m "describe change"`
+
+Apply migrations:
+
+`python -m alembic upgrade head`
+
+## Ops Endpoints
+
+1. Readiness: `GET /api/v1/ops/ready`
+2. Runtime metrics: `GET /api/v1/ops/metrics`
+
 ## Learning Path
 
 Read `docs/STEP_BY_STEP_PLAN.md` and implement phase by phase.

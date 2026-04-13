@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: company-assistant-backend
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite:///./assistant.db
+      - QDRANT_PATH=qdrant_data
+    volumes:
+      - ./assistant.db:/app/assistant.db
+      - ./uploads:/app/uploads
+      - ./qdrant_data:/app/qdrant_data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: company-assistant-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
