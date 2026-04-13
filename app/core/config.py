@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     database_url: str = "sqlite:///./assistant.db"
     upload_dir: str = "uploads"
+    qdrant_path: str = "qdrant_data"
+    qdrant_collection: str = "company_knowledge_chunks"
+    embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

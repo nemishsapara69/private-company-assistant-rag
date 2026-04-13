@@ -11,3 +11,4 @@ assistant.db
 *.sqlite3
 *.log
 uploads/
+qdrant_data/

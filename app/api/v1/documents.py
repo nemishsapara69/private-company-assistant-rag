@@ -15,6 +15,7 @@ from app.schemas.chunk_debug import ChunkPreview, DocumentChunkDebugResponse
 from app.schemas.document import DocumentCreateRequest, DocumentListResponse, DocumentResponse
 from app.schemas.ingestion import IngestResponse
 from app.services.document_processing import SUPPORTED_EXTENSIONS, chunk_text, extract_text_from_file
+from app.services.vector_indexing import index_document_chunks
 
 router = APIRouter()
 
@@ -132,31 +133,45 @@ async def upload_document(
     db.commit()
     db.refresh(document)
 
+    created_chunk_rows: list[DocumentChunk] = []
     for index, chunk in enumerate(chunks):
-        db.add(
-            DocumentChunk(
-                document_id=document.id,
-                chunk_index=index,
-                content=chunk,
-                source_page="",
-                metadata_json=json.dumps(
-                    {
-                        "title": title,
-                        "department": department,
-                        "doc_type": doc_type,
-                        "sensitivity": sensitivity,
-                        "owner": owner,
-                        "source_file": filename,
-                    }
-                ),
-            )
+        row = DocumentChunk(
+            document_id=document.id,
+            chunk_index=index,
+            content=chunk,
+            source_page="",
+            metadata_json=json.dumps(
+                {
+                    "title": title,
+                    "department": department,
+                    "doc_type": doc_type,
+                    "sensitivity": sensitivity,
+                    "owner": owner,
+                    "source_file": filename,
+                }
+            ),
         )
+        db.add(row)
+        created_chunk_rows.append(row)
 
     db.commit()
+
+    for row in created_chunk_rows:
+        db.refresh(row)
+
+    try:
+        indexed_chunks = index_document_chunks(
+            document=document,
+            chunk_records=created_chunk_rows,
+            allowed_roles=[str(role) for role in parsed_allowed_roles],
+        )
+    except Exception:
+        indexed_chunks = 0
 
     return IngestResponse(
         document=build_document_response(document),
         chunk_count=len(chunks),
+        indexed_chunks=indexed_chunks,
         extracted_characters=len(extracted_text),
         source_file=filename,
         created_at=document.created_at,

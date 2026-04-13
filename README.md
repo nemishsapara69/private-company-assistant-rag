@@ -15,6 +15,7 @@ Phase 1 and Phase 2 foundation are ready:
 - Admin document upload with TXT, PDF, and DOCX parsing
 - Chunk storage for later vector search
 - Chat retrieval from stored chunks with citations
+- Phase 3 semantic retrieval with local Qdrant vector store
 
 ## Quick Start
 
@@ -70,6 +71,12 @@ Phase 1 and Phase 2 foundation are ready:
 1. Login as `hr_admin` / `hr123` and authorize.
 2. Call POST `/api/v1/chat` with module `hr` and a leave-related question.
 3. Confirm response includes citations from uploaded documents.
+
+## Semantic Retrieval Notes
+
+1. Uploaded chunks are embedded using `sentence-transformers/all-MiniLM-L6-v2`.
+2. Vectors are stored in local Qdrant at `qdrant_data/`.
+3. Chat uses semantic search first, then keyword fallback if needed.
 
 ## Learning Path
 
