@@ -30,6 +30,28 @@ def _sentence_split(text: str) -> list[str]:
     return [part.strip() for part in parts if part and part.strip()]
 
 
+def _sentence_match_score(sentence: str, question: str) -> int:
+    query_lower = question.lower()
+    sentence_lower = sentence.lower()
+
+    query_tokens = _tokenize(question)
+    sentence_tokens = _tokenize(sentence)
+    overlap = len(query_tokens.intersection(sentence_tokens))
+
+    # Small domain boosts improve ranking for intent-heavy prompts.
+    if "password" in query_lower and "password" in sentence_lower:
+        overlap += 2
+    if any(term in query_lower for term in ("minimum", "length", "at least")):
+        if any(term in sentence_lower for term in ("minimum", "at least", "character", "characters")):
+            overlap += 2
+    if "vpn" in query_lower and "vpn" in sentence_lower:
+        overlap += 2
+    if "mfa" in query_lower and ("mfa" in sentence_lower or "multi-factor" in sentence_lower):
+        overlap += 2
+
+    return overlap
+
+
 def _best_snippet(text: str, question: str, max_sentences: int = 2, max_chars: int = 420) -> str:
     sentences = _sentence_split(text)
     if not sentences:
@@ -38,8 +60,7 @@ def _best_snippet(text: str, question: str, max_sentences: int = 2, max_chars: i
     query_tokens = _tokenize(question)
     scored: list[tuple[int, int, str]] = []
     for idx, sentence in enumerate(sentences):
-        sentence_tokens = _tokenize(sentence)
-        overlap = len(query_tokens.intersection(sentence_tokens))
+        overlap = _sentence_match_score(sentence, question)
         scored.append((overlap, -idx, sentence))
 
     scored.sort(reverse=True)
@@ -88,6 +109,7 @@ def retrieve_answer(question: str, module: str, role: str, db: Session) -> tuple
     if hits:
         semantic_parts = []
         semantic_citations = []
+        seen_snippets: set[str] = set()
         top_score = max(item.score for item in hits)
 
         for hit in hits:
@@ -96,6 +118,10 @@ def retrieve_answer(question: str, module: str, role: str, db: Session) -> tuple
             if not content:
                 continue
             snippet = _best_snippet(content, question=question)
+            snippet_key = snippet.lower()
+            if snippet_key in seen_snippets:
+                continue
+            seen_snippets.add(snippet_key)
             semantic_parts.append(f"- {snippet}")
             semantic_citations.append(
                 Citation(
