@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Company Assistant Console</title>
+  <style>
+    :root {
+      --bg: #f6f4ed;
+      --paper: #fffdf7;
+      --ink: #1d232b;
+      --muted: #6e7781;
+      --accent: #0d6e6e;
+      --accent-2: #f28f3b;
+      --ok: #147a47;
+      --danger: #9f2a2a;
+      --line: #d9d3c6;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 18%, #e9f5ef 0, #e9f5ef 20%, transparent 21%),
+        radial-gradient(circle at 85% 20%, #fff0df 0, #fff0df 18%, transparent 19%),
+        linear-gradient(120deg, #f7f4ec, #eff6f4 50%, #f6efe7);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 28px auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 14px 44px rgba(40, 50, 60, 0.12);
+    }
+
+    .hero {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, #0d6e6e 0, #167f6a 55%, #1a8f63 100%);
+      color: #fff;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 6px 0 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 660px;
+    }
+
+    .panel {
+      padding: 18px;
+      border-right: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 10px 11px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    textarea { min-height: 96px; resize: vertical; }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); filter: brightness(1.02); }
+
+    .btn-secondary {
+      background: #f3efe5;
+      color: #2b333d;
+      border: 1px solid var(--line);
+    }
+
+    .chat {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #fffcf6;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+    }
+
+    .status-ok { color: var(--ok); border-color: #b8dfc8; }
+    .status-bad { color: var(--danger); border-color: #efc3c3; }
+
+    .messages {
+      flex: 1;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      overflow: auto;
+      min-height: 380px;
+    }
+
+    .msg {
+      margin-bottom: 12px;
+      padding: 10px 11px;
+      border-radius: 10px;
+      border: 1px solid #ece6d8;
+      animation: rise 0.22s ease;
+    }
+
+    .me { background: #f1faf7; border-color: #cce7dc; }
+    .bot { background: #fffaf0; }
+
+    .meta {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .inline-actions button {
+      width: auto;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      background: #f4efe1;
+      color: #334;
+    }
+
+    .quick {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .quick button {
+      background: #f4efe1;
+      color: #2a3338;
+      border: 1px solid var(--line);
+      text-align: left;
+    }
+
+    @keyframes rise {
+      from { transform: translateY(4px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 920px) {
+      .app { margin: 0; border-radius: 0; border: none; }
+      .grid { grid-template-columns: 1fr; }
+      .panel { border-right: none; border-bottom: 1px solid var(--line); }
+      .messages { min-height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <h1>Private Company Assistant</h1>
+      <p>Role-aware answers with citations, confidence, and feedback capture.</p>
+    </div>
+
+    <div class="grid">
+      <aside class="panel">
+        <p class="section-title">Session</p>
+        <div class="field">
+          <label>Username</label>
+          <input id="username" value="hr_admin" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="password" type="password" value="hr123" />
+        </div>
+        <button id="loginBtn">Login</button>
+        <p id="loginState" class="meta">Not logged in</p>
+
+        <p class="section-title">Module</p>
+        <div class="field">
+          <select id="module">
+            <option value="hr">hr</option>
+            <option value="it">it</option>
+            <option value="policy">policy</option>
+            <option value="manager">manager</option>
+          </select>
+        </div>
+
+        <div class="quick" id="quickPrompts"></div>
+
+        <p class="section-title" style="margin-top:14px;">Admin</p>
+        <button id="metricsBtn" class="btn-secondary">Fetch Metrics</button>
+        <pre id="metricsOut" class="meta"></pre>
+      </aside>
+
+      <section class="chat">
+        <span id="health" class="pill">API status unknown</span>
+        <div id="messages" class="messages"></div>
+        <div class="field" style="margin:0;">
+          <textarea id="question" placeholder="Ask policy question..."></textarea>
+        </div>
+        <button id="askBtn">Ask Assistant</button>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const api = "/api/v1";
+    let token = "";
+    let role = "";
+
+    const quickByModule = {
+      hr: [
+        "When is a medical certificate required?",
+        "How many days before leave should I apply?"
+      ],
+      it: [
+        "What is the minimum password length?",
+        "How do I reset VPN credentials?"
+      ],
+      policy: [
+        "What are the general leave rules?",
+        "Who approves policy exceptions?"
+      ],
+      manager: [
+        "How should managers approve leave?",
+        "What manager workflows are documented?"
+      ]
+    };
+
+    function setHealth(text, ok) {
+      const el = document.getElementById("health");
+      el.textContent = text;
+      el.className = ok ? "pill status-ok" : "pill status-bad";
+    }
+
+    function addMessage(kind, text, meta = "", payload = null) {
+      const wrap = document.getElementById("messages");
+      const box = document.createElement("div");
+      box.className = `msg ${kind}`;
+      box.innerHTML = `<div>${text}</div>${meta ? `<div class=\"meta\">${meta}</div>` : ""}`;
+
+      if (kind === "bot" && payload) {
+        const actions = document.createElement("div");
+        actions.className = "inline-actions";
+
+        const up = document.createElement("button");
+        up.textContent = "Helpful";
+        up.onclick = () => submitFeedback(true, payload);
+
+        const down = document.createElement("button");
+        down.textContent = "Not helpful";
+        down.onclick = () => submitFeedback(false, payload);
+
+        actions.appendChild(up);
+        actions.appendChild(down);
+        box.appendChild(actions);
+      }
+
+      wrap.appendChild(box);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    function renderQuickPrompts() {
+      const module = document.getElementById("module").value;
+      const list = quickByModule[module] || [];
+      const wrap = document.getElementById("quickPrompts");
+      wrap.innerHTML = "";
+      list.forEach((prompt) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = prompt;
+        btn.onclick = () => { document.getElementById("question").value = prompt; };
+        wrap.appendChild(btn);
+      });
+    }
+
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      const res = await fetch(`${api}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!res.ok) {
+        document.getElementById("loginState").textContent = "Login failed";
+        return;
+      }
+
+      const data = await res.json();
+      token = data.access_token;
+      role = data.role;
+      document.getElementById("loginState").textContent = `Logged in as ${username} (${role})`;
+      addMessage("bot", `Session ready for ${role}.`, "You can now ask questions.");
+    }
+
+    async function ask() {
+      if (!token) {
+        addMessage("bot", "Please login first.");
+        return;
+      }
+
+      const question = document.getElementById("question").value.trim();
+      const module = document.getElementById("module").value;
+      if (!question) return;
+
+      addMessage("me", question, `module=${module}`);
+
+      const res = await fetch(`${api}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ question, module })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        addMessage("bot", `Request failed: ${err.detail || res.statusText}`);
+        return;
+      }
+
+      const data = await res.json();
+      const citations = (data.citations || []).map((c) => `${c.document} / ${c.section}`);
+      addMessage(
+        "bot",
+        data.answer,
+        `confidence=${Number(data.confidence).toFixed(2)} | scope=${data.access_scope} | citations=${citations.join("; ") || "none"}`,
+        { module, question, answer: data.answer, citations }
+      );
+    }
+
+    async function submitFeedback(helpful, payload) {
+      if (!token) return;
+
+      await fetch(`${api}/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          module: payload.module,
+          question: payload.question,
+          answer: payload.answer,
+          citations: payload.citations,
+          helpful,
+          comment: ""
+        })
+      });
+    }
+
+    async function loadMetrics() {
+      if (!token) {
+        document.getElementById("metricsOut").textContent = "Login required.";
+        return;
+      }
+
+      const res = await fetch(`${api}/admin/metrics`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        document.getElementById("metricsOut").textContent = "Metrics available only for admin.";
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("metricsOut").textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function checkHealth() {
+      const res = await fetch(`${api}/health`);
+      setHealth(res.ok ? "API online" : "API unavailable", res.ok);
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", login);
+    document.getElementById("askBtn").addEventListener("click", ask);
+    document.getElementById("module").addEventListener("change", renderQuickPrompts);
+    document.getElementById("metricsBtn").addEventListener("click", loadMetrics);
+
+    renderQuickPrompts();
+    checkHealth();
+  </script>
+</body>
+</html>
