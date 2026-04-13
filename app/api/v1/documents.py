@@ -15,6 +15,7 @@ from app.schemas.chunk_debug import ChunkPreview, DocumentChunkDebugResponse
 from app.schemas.document import DocumentCreateRequest, DocumentListResponse, DocumentResponse
 from app.schemas.ingestion import IngestResponse
 from app.services.document_processing import SUPPORTED_EXTENSIONS, chunk_text, extract_text_from_file
+from app.services.security_guardrails import sanitize_text_for_retrieval
 from app.services.vector_indexing import index_document_chunks
 
 router = APIRouter()
@@ -116,7 +117,8 @@ async def upload_document(
     stored_path.write_bytes(file_bytes)
 
     extracted_text = extract_text_from_file(stored_path)
-    chunks = chunk_text(extracted_text)
+    sanitized_text = sanitize_text_for_retrieval(extracted_text)
+    chunks = chunk_text(sanitized_text)
 
     parsed_allowed_roles = parse_allowed_roles_input(allowed_roles)
 
@@ -172,7 +174,7 @@ async def upload_document(
         document=build_document_response(document),
         chunk_count=len(chunks),
         indexed_chunks=indexed_chunks,
-        extracted_characters=len(extracted_text),
+        extracted_characters=len(sanitized_text),
         source_file=filename,
         created_at=document.created_at,
     )

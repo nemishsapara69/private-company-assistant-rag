@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models import Document, DocumentChunk
 from app.schemas.chat import Citation
 from app.services.embedding_service import embed_query
+from app.services.security_guardrails import payload_matches_module, payload_role_allowed
 from app.services.vector_store import semantic_search
 
 
@@ -168,6 +169,10 @@ def _merge_semantic_hits(question: str, module: str, role: str) -> dict[tuple[in
 
     for hit in hits:
         payload = hit.payload or {}
+        if not payload_role_allowed(payload, role):
+            continue
+        if not payload_matches_module(payload, module):
+            continue
         document_id = int(payload.get("document_id", 0) or 0)
         chunk_index = int(payload.get("chunk_index", 0) or 0)
         if document_id <= 0:

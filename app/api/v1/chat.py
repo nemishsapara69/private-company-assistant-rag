@@ -11,6 +11,7 @@ from app.models import AuditLog
 from app.schemas.auth import UserSession
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.retrieval import retrieve_answer
+from app.services.security_guardrails import is_prompt_injection_attempt
 
 router = APIRouter()
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -46,6 +47,25 @@ def chat(
     user: UserSession = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ChatResponse:
+    if is_prompt_injection_attempt(query.question):
+        db.add(
+            AuditLog(
+                username=user.username,
+                role=user.role,
+                question=query.question,
+                module=query.module,
+                access_scope="blocked",
+                authorization_result="blocked_injection",
+                confidence=0.0,
+                citations="",
+            )
+        )
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Potential prompt-injection content detected.",
+        )
+
     answer, citations, confidence, scope = retrieve_answer(
         question=query.question,
         module=query.module,
@@ -64,7 +84,7 @@ def chat(
                 question=query.question,
                 module=query.module,
                 access_scope=scope,
-                authorization_result="denied",
+                authorization_result="denied_scope",
                 confidence=confidence,
                 citations="",
             )
@@ -72,9 +92,11 @@ def chat(
         db.commit()
         raise
 
+    auth_result = "allowed"
     if confidence < 0.4:
         answer = "I do not know based on the authorized knowledge sources right now."
         citations = []
+        auth_result = "fallback_low_conf"
 
     citation_text = " | ".join([f"{c.document}::{c.section}" for c in citations])
     db.add(

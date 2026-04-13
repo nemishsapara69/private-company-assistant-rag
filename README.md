@@ -78,6 +78,19 @@ Phase 1 and Phase 2 foundation are ready:
 2. Vectors are stored in local Qdrant at `qdrant_data/`.
 3. Chat uses semantic search first, then keyword fallback if needed.
 
+## Security Controls (Phase 5)
+
+1. Prompt-injection attempts are blocked at chat input validation.
+2. Uploaded document text is sanitized before chunking/indexing.
+3. Semantic payloads are re-checked for role/module eligibility at retrieval time.
+4. Audit logs now include structured outcomes such as `blocked_injection`, `denied_scope`, and `fallback_low_conf`.
+
+## Security Regression Tests
+
+Run:
+
+`python -m pytest tests/test_phase5_security.py -q`
+
 ## Learning Path
 
 Read `docs/STEP_BY_STEP_PLAN.md` and implement phase by phase.
